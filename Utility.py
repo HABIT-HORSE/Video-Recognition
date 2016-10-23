@@ -8,6 +8,12 @@ import pickle
 def normalizeSIFT(descriptor):
     descriptor = np.array(descriptor)
     norm = np.linalg.norm(descriptor)
+    '''
+Steve note: last line...
+https://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.norm.html
+Normalises matrix.
+In vectors, this means change the coordinates, so that the direction of the vector remains the same, but the line length now equals 1. Same in matrices?
+    '''
 
     if norm > 1.0:
         result = np.true_divide(descriptor, norm)
@@ -24,18 +30,33 @@ def readVideoData(pathOfSingleVideo, subSampling = 5):
     for frame in frames:
         completePath = pathOfSingleVideo +"/"+ frame
         lines = open(completePath, "r").readlines()
-
-        for line in lines[1::subSampling]:
-            data = line.split(" ")
-            feature = data[4:]
+        print completePath + " FRAME!!!" #Steve
+        #for line in lines[1::subSampling]:
+        # for line in lines[0::subSampling]: # Steve: it was starting to parse at line 2 (1 as numbering starts at 0)...to allow for header line?]
+        n=1 #Steve:
+        for line in lines: # Steve: it was starting to parse at line 2 (1 as numbering starts at 0)...to allow for header line?
+            print "Line: " + str(n) + " of " + str(len(lines)) + " lines" # Steve:
+            n=n+1		
+            #print "Line: " + str(line) #Steve
+            # data = line.split(" ") # Steve: split line into an array of value items
+            feature = line.split(" ") # Steve: split line into an array of value items
+            feature = feature[:-1] # Steve: slice off last item in line because it's an LF \n character
+            #feature = data[4:]
+            # feature = data[0:] # Steve: it was starting at item #4 in each line...not sure why?
+            #print "Feature: " + str(feature) #Steve
             for i in range(len(feature)):
-                item = int(feature[i])
+            #for i in range(len(feature)-1): # Steve: changed to -1 so that LF characeter doesn't break int conversion in a couple of lines
+                #print "Item: " + feature[i] #Steve
+                #item = int(feature[i])
+                item = int(float(feature[i])) #Steve
                 feature[i] = item
-
+                #print "Item: " + str(item) #Steve
+			            
             # normalize SIFT feature
             feature = normalizeSIFT(feature)
             stackOfSIFTFeatures.append(feature)
-
+    
+	# print "No of lines: " + str(len(lines)) # Steve:
     return np.array(stackOfSIFTFeatures)
 
 def buildHistogramForVideo(pathToVideo, vocabulary):
